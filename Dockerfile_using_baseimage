@@ -1,0 +1,52 @@
+# BUILD-USING: docker build -t ejo/pg .
+# RUN-USING: docker run -d -p 6001:6001 --name pg ejo/pg
+
+FROM gissehel/phusion-baseimage-u1404
+MAINTAINER Eric Ongerth "ericongerth@gmail.com"
+
+# ADD .ssh/id_rsa /root/.ssh/id_rsa
+
+ENV HOME /root
+
+# Regenerate SSH host keys. baseimage-docker does not contain any, so you
+# have to do that yourself. You may also comment out this instruction; the
+# init system will auto-generate one during boot.
+RUN /etc/my_init.d/00_regen_ssh_host_keys.sh
+
+RUN mkdir /etc/service/postgresql
+ADD postgres.sh /etc/service/postgresql/run
+
+# Use baseimage-docker's init system.
+CMD ["/sbin/my_init"]
+
+ENV DEBIAN_FRONTEND noninteractive
+
+RUN echo "debconf debconf/frontend select Teletype" | debconf-set-selections
+RUN echo "deb http://archive.ubuntu.com/ubuntu $(lsb_release -cs) main universe" > /etc/apt/sources.list
+RUN apt-get update -y
+RUN apt-get upgrade -y
+RUN apt-get install -y postgresql-9.3 postgresql-client-9.3 postgresql-contrib-9.3
+
+RUN echo "host	all	 all	0.0.0.0/0	md5" >> /etc/postgresql/9.3/main/pg_hba.conf
+RUN echo "local all	 all	trust" >> /etc/postgresql/9.3/main/pg_hba.conf
+RUN echo "listen_addresses='0.0.0.0'" >> /etc/postgresql/9.3/main/postgresql.conf
+RUN echo "port=6001" >> /etc/postgresql/9.3/main/postgresql.conf
+
+RUN service postgresql restart
+
+USER postgres
+RUN service postgresql start &&\
+    psql --command "CREATE USER cataphor WITH SUPERUSER PASSWORD 'cataphor';" &&\
+    createdb -O cataphor cataphordb && service postgresql stop
+
+USER root
+# Expose pg server port
+EXPOSE 6001
+
+VOLUME ["/etc/postgresql", "/var/log/postgresql", "/var/lib/postgresql"]
+
+# Used to do this, in the absence of baseimage-docker
+#CMD ["/bin/su", "postgres", "-c", "/usr/lib/postgresql/9.3/bin/postgres -D /var/lib/postgresql/9.3/main -c config_file=/etc/postgresql/9.3/main/postgresql.conf"]
+
+# Clean up APT when done.
+RUN apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
