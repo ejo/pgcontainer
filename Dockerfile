@@ -26,13 +26,13 @@ RUN update-locale LANG=en_US.UTF-8
 RUN apt-get upgrade -y
 
 # Install postgresql
-RUN apt-get install -y postgresql-9.3 postgresql-contrib-9.3
+RUN apt-get install -y postgresql-9.4 postgresql-contrib-9.4
 
 # Set access, listening, port
-RUN echo "host	all	 all	0.0.0.0/0	md5" >> /etc/postgresql/9.3/main/pg_hba.conf
-RUN echo "local all	 all	trust" >> /etc/postgresql/9.3/main/pg_hba.conf
-RUN echo "listen_addresses='0.0.0.0'" >> /etc/postgresql/9.3/main/postgresql.conf
-RUN echo "port=6001" >> /etc/postgresql/9.3/main/postgresql.conf
+RUN echo "host	all	 all	0.0.0.0/0	md5" >> /etc/postgresql/9.4/main/pg_hba.conf
+RUN echo "local all	 all	trust" >> /etc/postgresql/9.4/main/pg_hba.conf
+RUN echo "listen_addresses='0.0.0.0'" >> /etc/postgresql/9.4/main/postgresql.conf
+RUN echo "port=6001" >> /etc/postgresql/9.4/main/postgresql.conf
 
 USER postgres
 RUN service postgresql start &&\
@@ -45,7 +45,7 @@ EXPOSE 6001
 
 VOLUME ["/etc/postgresql", "/var/log/postgresql"]
 
-CMD ["/bin/su", "postgres", "-c", "/usr/lib/postgresql/9.3/bin/postgres -D /var/lib/postgresql/9.3/main -c config_file=/etc/postgresql/9.3/main/postgresql.conf"]
+CMD ["/bin/su", "postgres", "-c", "/usr/lib/postgresql/9.4/bin/postgres -D /var/lib/postgresql/9.4/main -c config_file=/etc/postgresql/9.4/main/postgresql.conf"]
 
 # Clean up APT when done.
 RUN apt-get clean && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
