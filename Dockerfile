@@ -1,5 +1,5 @@
-# BUILD-USING: docker build -t ejo/pg .
-# RUN-USING: docker run -d -p 6001:6001 --name pg ejo/pg
+# BUILD-USING: docker build -t erico/pg .
+# RUN-USING: docker run -d -p 6001:6001 --name pg erico/pg
 # psql in with: psql -h 0.0.0.0 -p 6001 -U cataphor cataphordb
 
 FROM ubuntu:14.04
@@ -10,7 +10,11 @@ MAINTAINER Eric Ongerth "ericongerth@gmail.com"
 
 # Update package lists
 RUN echo "deb http://archive.ubuntu.com/ubuntu trusty main universe" > /etc/apt/sources.list
+RUN echo "deb http://apt.postgresql.org/pub/repos/apt/ trusty-pgdg main" > /etc/apt/sources.list.d/pgdg.list
+RUN apt-get install -y wget ca-certificates
+RUN wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | sudo apt-key add -
 RUN apt-get update
+
 
 # Deal with base ubuntu box's lack of locale+language defaults
 ENV DEBIAN_FRONTEND noninteractive
